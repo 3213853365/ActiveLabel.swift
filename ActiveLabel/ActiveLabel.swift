@@ -274,9 +274,37 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
         isUserInteractionEnabled = true
     }
     
+//    fileprivate func updateTextStorage(parseText: Bool = true) {
+//        if _customizing { return }
+//        // clean up previous active elements
+//        guard let attributedText = attributedText, attributedText.length > 0 else {
+//            clearActiveElements()
+//            textStorage.setAttributedString(NSAttributedString())
+//            setNeedsDisplay()
+//            return
+//        }
+//
+//        let mutAttrString = addLineBreak(attributedText)
+//
+//        if parseText {
+//            clearActiveElements()
+//            let newString = parseTextAndExtractActiveElements(mutAttrString)
+//            mutAttrString.mutableString.setString(newString)
+//        }
+//
+//        addLinkAttribute(mutAttrString)
+//        textStorage.setAttributedString(mutAttrString)
+//        _customizing = true
+//        text = mutAttrString.string
+//        _customizing = false
+//        setNeedsDisplay()
+//    }
+    
+    //Edited by Hasan Irshad
     fileprivate func updateTextStorage(parseText: Bool = true) {
         if _customizing { return }
         // clean up previous active elements
+
         guard let attributedText = attributedText, attributedText.length > 0 else {
             clearActiveElements()
             textStorage.setAttributedString(NSAttributedString())
@@ -284,12 +312,13 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             return
         }
         
-        let mutAttrString = addLineBreak(attributedText)
+//        let mutAttrString = addLineBreak(parseText == true ? parseTextMethod(attributedText) : attributedText)
+        var mutAttrString = addLineBreak(attributedText)
         
         if parseText {
             clearActiveElements()
             let newString = parseTextAndExtractActiveElements(mutAttrString)
-            mutAttrString.mutableString.setString(newString)
+            mutAttrString = addLineBreak(newString)
         }
         
         addLinkAttribute(mutAttrString)
@@ -349,12 +378,43 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
         }
     }
     
+    /// use regex check all link ranges //Default Pod Code
+//    fileprivate func parseTextAndExtractActiveElements(_ attrString: NSAttributedString) -> String {
+//        var textString = attrString.string
+//        var textLength = textString.utf16.count
+//        var textRange = NSRange(location: 0, length: textLength)
+//
+//        if enabledTypes.contains(.url) {
+//            let tuple = ActiveBuilder.createURLElements(from: textString, range: textRange, maximumLength: urlMaximumLength)
+//            let urlElements = tuple.0
+//            let finalText = tuple.1
+//            textString = finalText
+//            textLength = textString.utf16.count
+//            textRange = NSRange(location: 0, length: textLength)
+//            activeElements[.url] = urlElements
+//        }
+//
+//        for type in enabledTypes where type != .url {
+//            var filter: ((String) -> Bool)? = nil
+//            if type == .mention {
+//                filter = mentionFilterPredicate
+//            } else if type == .hashtag {
+//                filter = hashtagFilterPredicate
+//            }
+//            let hashtagElements = ActiveBuilder.createElements(type: type, from: textString, range: textRange, filterPredicate: filter)
+//            activeElements[type] = hashtagElements
+//        }
+//
+//        return textString
+//    }
+    
+    //Edited by Hasan Irshad
     /// use regex check all link ranges
-    fileprivate func parseTextAndExtractActiveElements(_ attrString: NSAttributedString) -> String {
+    fileprivate func parseTextAndExtractActiveElements(_ attrString: NSAttributedString) -> NSAttributedString {
         var textString = attrString.string
         var textLength = textString.utf16.count
         var textRange = NSRange(location: 0, length: textLength)
-        
+        print(textString)
         if enabledTypes.contains(.url) {
             let tuple = ActiveBuilder.createURLElements(from: textString, range: textRange, maximumLength: urlMaximumLength)
             let urlElements = tuple.0
@@ -376,10 +436,8 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             activeElements[type] = hashtagElements
         }
         
-        return textString
+        return attrString
     }
-    
-    
     /// add line break mode
     fileprivate func addLineBreak(_ attrString: NSAttributedString) -> NSMutableAttributedString {
         let mutAttrString = NSMutableAttributedString(attributedString: attrString)
